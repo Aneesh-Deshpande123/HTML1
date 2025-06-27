@@ -31,11 +31,24 @@
     </style>
 </head>
 <body>
-    <div class="div1">
-        <div class="part1"></div> 
-        <div class="part2"><img src="ashokachakra.png" alt=""></div>
-        <div class="part3"></div>
+    <div>
+        <div class="part1" id="part1"></div> 
+        <div class="part2"><img src="ashokachakra.png" alt="" id="part2"></div>
+        <div class="part3" id="part3"></div>
     </div>
+    <script>
+        let img=document.getElementById("part2");
+        let showChakra=true;
+        img.onclick=function event(){
+            if(showChakra==true){
+                showChakra=false;
+                img.style.opacity="0";
+            }else{
+                showChakra=true;
+                img.style.opacity="1";
+            }
+        }
+    </script>
     
 </body>
 </html>
