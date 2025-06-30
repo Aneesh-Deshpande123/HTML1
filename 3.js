@@ -5,10 +5,10 @@ bulb1.onclick=function event(){
     if(bulbOn==true){
         bulbOn=false;
         bulb1.src="bulboff.gif";
-        bulb2.textContent="Bulb is off";
+        bulb2.textContent="Bulb is off🥺";
     }else{
         bulbOn=true;
         bulb1.src="bulbon.gif";
-        bulb2.textContent="Bulb is on";
+        bulb2.textContent="Bulb is on😁";
     }
 }
