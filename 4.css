@@ -1,0 +1,19 @@
+body{
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+}
+table{
+    background-color: black;
+}
+td{
+    background-color: rgb(255, 255, 255);
+    padding:10px;
+    text-align: center ;
+}
+caption{
+    margin: 5px;
+}
+.red{
+    color:red;
+}

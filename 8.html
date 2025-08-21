@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Timer</title>
+</head>
+<body>
+    <p style="display:inline; font-size: xx-large;" id="p1"></p>
+    <p style="display:inline; color:red;" id="p2">seconds for the rocket to launch </p>
+    <script>
+        let i = 11;
+        let timer = document.getElementById("p1");
+        let message2 = document.getElementById("p2");
+        let interval1 = setInterval(
+            function(){
+                i--;
+                if(i !=0){
+                     timer.textContent = i;
+                }else{
+                    timer.textContent = "Take Off!!!";
+                    message2.style.visibility = "hidden";
+                    clearInterval(interval1);
+                }
+               
+            },
+            1000
+        );
+    </script>
+</body>
+</html>

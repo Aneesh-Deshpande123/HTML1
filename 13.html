@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mr.Bob's Passwordgen</title>
+    <style>
+        *{
+            font-size:1rem;
+        }
+        table{
+            width:300px;
+        } 
+        #id3{
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <table>
+        <tr>
+            <td>Password Quantity</td>
+            <td><input type="number" id="id1"></td>
+        </tr>
+        <tr>
+            <td>Password Size</td>
+            <td><input type="number" id="id2"></td>
+        </tr>
+    </table>
+    <button id="id3">Submit</button>
+    <ol id="id4"></ol>
+    <script>
+        function genPwd(size){
+            let arr1 = "abcdefghijklmnopqrstuvwxyz".split("");
+            let arr2 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+            let arr3 = "1234567890".split("");
+            let masterarr1 = [...arr1,...arr2,...arr3];
+            let pwd = "";
+            for(let i = 0; i<size; i++){
+                let rand1 = Math.floor(Math.random() * masterarr1.length);
+                pwd+=masterarr1[rand1];
+            }
+            return pwd;
+
+        }
+        let submitBtn = document.getElementById("id3");
+        let pwdQty = document.getElementById("id1");
+        let pwdSize = document.getElementById("id2");
+        let ol = document.getElementById("id4");
+
+        submitBtn.onclick = function(){
+            ol.innerHTML = "";
+            for(let i = 0; i<pwdQty.value; i++){
+                ol.innerHTML += `<li>${genPwd(pwdSize.value)}</li>`;        
+            }
+        }
+
+    </script>
+</body>
+</html>
