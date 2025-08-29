@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bobby RGB Color Picker</title>
+    <link rel="stylesheet" href="17.css">
+</head>
+<body>
+    <div class="color-picker-container">
+        <h1>RGB Color Slider</h1>
+        <div class="color-box" id="color-box"></div>
+        
+        <div class="slider-group">
+            <label for="red">Red:</label>
+            <input type="range" id="red" min="0" max="255" value="0">
+            <span id="red-value">0</span>
+        </div>
+        
+        <div class="slider-group">
+            <label for="green">Green:</label>
+            <input type="range" id="green" min="0" max="255" value="0">
+            <span id="green-value">0</span>
+        </div>
+
+        <div class="slider-group">
+            <label for="blue">Blue:</label>
+            <input type="range" id="blue" min="0" max="255" value="0">
+            <span id="blue-value">0</span>
+        </div>
+        
+        <p>HEX Code: <span id="hex-code">#000000</span></p>
+    </div>
+
+    <script src="17.js"></script>
+</body>
+</html>

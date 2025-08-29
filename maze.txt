@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Modak Maze</title>
+    
+    <!-- Embedded CSS -->
+    <style>
+        body {
+            background-image:linear-gradient(to bottom, red, black);
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden; /* Prevent scrolling */
+        }
+        
+        canvas {
+            border: 2px solid #8b4513;
+            background-color: #fff;
+        }
+        
+        h1 {
+            color: #8b4513;
+        }
+        
+        #gameStatus {
+            margin-top: 10px;
+            font-size: 1.5em;
+            color: #5d3513;
+        }
+        
+        /* Modal Styling */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            padding: 20px;
+            border: 1px solid #888;
+            max-width: 500px;
+            text-align: center;
+            border-radius: 10px;
+            position: relative;
+        }
+        
+        .close-button {
+            color: #aaa;
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+        }
+
+        #finalMessage {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            background-color: #fefefe;
+            padding: 40px;
+            border: 5px solid #8b4513;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 2em;
+            color: #5d3513;
+        }
+        
+        .answer-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        
+        .answer-btn:hover {
+            opacity: 0.8;
+        }
+        
+        .answer-btn.correct {
+            background-color: #45a049;
+        }
+        
+        .answer-btn.incorrect {
+            background-color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <h1>The Modak Maze</h1>
+    <canvas id="mazeCanvas"></canvas>
+    <div id="gameStatus">Score: <span id="score">0</span></div>
+
+    <!-- The Modal/Pop-up for questions -->
+    <div id="questionModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <p id="questionText"></p>
+            <div id="answers"></div>
+        </div>
+    </div>
+
+    <!-- The Final Congratulations Message -->
+    <div id="finalMessage">
+        <p>YOU HAVE ANSWERED EVERYTHING RIGHT!!!<br>HAPPY GANESH CHATHURTHI!!!</p>
+    </div>
+
+    <!-- Embedded JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('mazeCanvas');
+            const ctx = canvas.getContext('2d');
+            const scoreDisplay = document.getElementById('score');
+            const modal = document.getElementById('questionModal');
+            const questionText = document.getElementById('questionText');
+            const answersDiv = document.getElementById('answers');
+            const closeBtn = document.querySelector('.close-button');
+            const finalMessage = document.getElementById('finalMessage');
+
+            // Game variables
+            const TILE_SIZE = 20;
+            let mazeGrid = [];
+            let player = { x: 1, y: 1 };
+            let score = 0;
+            let modaks = [];
+            let levelsCompleted = 0;
+            const TOTAL_LEVELS = 3;
+
+            const quizQuestions = [
+                {
+                    question: "Who is Lord Ganesha's mother?",
+                    answers: ["Parvati", "Saraswati", "Lakshmi"],
+                    correct: "Parvati"
+                },
+                {
+                    question: "What is Ganesha's favorite sweet?",
+                    answers: ["Laddoo", "Jalebi", "Modak"],
+                    correct: "Modak"
+                },
+                {
+                    question: "What vehicle does Mushak (the mouse) serve?",
+                    answers: ["Vishnu", "Shiva", "Ganesha"],
+                    correct: "Ganesha"
+                }
+            ];
+            let currentQuestionIndex = 0;
+            let allCorrect = true; // Track if all quiz questions were answered correctly
+
+            // Load images
+            const playerImg = new Image();
+            playerImg.src = 'https://i.imgur.com/8YlF6iZ.png'; // Replace with your own Mushak image
+            const modakImg = new Image();
+            modakImg.src = 'https://i.imgur.com/n6tYFpZ.png'; // Replace with your own Modak image
+
+            // Wait for images to load before starting
+            let imagesLoaded = 0;
+            const totalImages = 2;
+
+            function imageLoaded() {
+                imagesLoaded++;
+                if (imagesLoaded === totalImages) {
+                    initGame();
+                }
+            }
+            playerImg.onload = imageLoaded;
+            modakImg.onload = imageLoaded;
+
+            // Maze generation (simplified)
+            function generateMaze(rows, cols) {
+                mazeGrid = new Array(rows).fill(null).map(() => new Array(cols).fill(1));
+                
+                function carvePath(x, y) {
+                    const directions = shuffle([[0, -1], [0, 1], [-1, 0], [1, 0]]);
+                    for (const [dx, dy] of directions) {
+                        const nx = x + dx * 2;
+                        const ny = y + dy * 2;
+                        if (ny >= 0 && ny < rows && nx >= 0 && nx < cols && mazeGrid[ny][nx] === 1) {
+                            mazeGrid[y + dy][x + dx] = 0;
+                            mazeGrid[ny][nx] = 0;
+                            carvePath(nx, ny);
+                        }
+                    }
+                }
+                carvePath(1, 1);
+            }
+
+            function shuffle(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
+
+            function placeModaks(numModaks) {
+                modaks = [];
+                const rows = mazeGrid.length;
+                const cols = mazeGrid.length;
+                for (let i = 0; i < numModaks; i++) {
+                    let placed = false;
+                    while (!placed) {
+                        const x = Math.floor(Math.random() * (cols - 2)) + 1;
+                        const y = Math.floor(Math.random() * (rows - 2)) + 1;
+                        if (mazeGrid[y][x] === 0 && (x !== player.x || y !== player.y)) {
+                            modaks.push({ x, y });
+                            placed = true;
+                        }
+                    }
+                }
+            }
+
+            function drawMaze() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                for (let y = 0; y < mazeGrid.length; y++) {
+                    for (let x = 0; x < mazeGrid[y].length; x++) {
+                        if (mazeGrid[y][x] === 1) {
+                            ctx.fillStyle = '#8b4513';
+                            ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                        }
+                    }
+                }
+            }
+
+            function drawPlayer() {
+                ctx.drawImage(playerImg, player.x * TILE_SIZE, player.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            }
+
+            function drawModaks() {
+                modaks.forEach(modak => {
+                    ctx.drawImage(modakImg, modak.x * TILE_SIZE, modak.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                });
+            }
+
+            function gameLoop() {
+                drawMaze();
+                drawModaks();
+                drawPlayer();
+            }
+
+            function movePlayer(dx, dy) {
+                if (modal.style.display === 'block') {
+                    return; // Prevent movement during quiz
+                }
+                
+                const newX = player.x + dx;
+                const newY = player.y + dy;
+            
+                if (newY >= 0 && newY < mazeGrid.length && newX >= 0 && newX < mazeGrid.length && mazeGrid[newY][newX] === 0) {
+                    player.x = newX;
+                    player.y = newY;
+                    checkCollisions();
+                    gameLoop();
+                }
+            }
+
+            function checkCollisions() {
+                for (let i = 0; i < modaks.length; i++) {
+                    if (player.x === modaks[i].x && player.y === modaks[i].y) {
+                        modaks.splice(i, 1);
+                        score += 10;
+                        scoreDisplay.textContent = score;
+                        
+                        showQuestion();
+                        
+                        if (modaks.length === 0) {
+                            levelsCompleted++;
+                            if (levelsCompleted >= TOTAL_LEVELS && allCorrect) {
+                                setTimeout(() => {
+                                    showFinalMessage();
+                                }, 500);
+                            } else {
+                                setTimeout(() => {
+                                    alert(`Level ${levelsCompleted} complete! Starting next level.`);
+                                    initGame();
+                                }, 500);
+                            }
+                        }
+                        return;
+                    }
+                }
+            }
+
+            function showQuestion() {
+                if (currentQuestionIndex >= quizQuestions.length) {
+                    currentQuestionIndex = 0; // Loop questions
+                }
+                const q = quizQuestions[currentQuestionIndex];
+                questionText.textContent = q.question;
+                answersDiv.innerHTML = '';
+                
+                const shuffledAnswers = shuffle([...q.answers]);
+
+                shuffledAnswers.forEach(answer => {
+                    const btn = document.createElement('button');
+                    btn.textContent = answer;
+                    btn.classList.add('answer-btn');
+                    btn.onclick = () => {
+                        if (answer === q.correct) {
+                            alert('Correct!');
+                        } else {
+                            alert('Incorrect!');
+                            allCorrect = false; // Player got a question wrong
+                        }
+                        modal.style.display = 'none';
+                        currentQuestionIndex++;
+                    };
+                    answersDiv.appendChild(btn);
+                });
+
+                modal.style.display = 'flex';
+            }
+            
+            closeBtn.onclick = () => {
+                modal.style.display = 'none';
+                currentQuestionIndex++;
+                allCorrect = false; // Closing modal without answering correctly
+            };
+
+            function showFinalMessage() {
+                finalMessage.style.display = 'block';
+                // You can add more logic here, like a 'play again' button or resetting the game.
+            }
+
+            function handleKeyDown(e) {
+                switch (e.key) {
+                    case 'ArrowUp':
+                        movePlayer(0, -1);
+                        break;
+                    case 'ArrowDown':
+                        movePlayer(0, 1);
+                        break;
+                    case 'ArrowLeft':
+                        movePlayer(-1, 0);
+                        break;
+                    case 'ArrowRight':
+                        movePlayer(1, 0);
+                        break;
+                }
+            }
+
+            function initGame() {
+                const rows = 21;
+                const cols = 21;
+                canvas.width = cols * TILE_SIZE;
+                canvas.height = rows * TILE_SIZE;
+                
+                generateMaze(rows, cols);
+                player = { x: 1, y: 1 };
+                score = 0;
+                scoreDisplay.textContent = score;
+                placeModaks(5); // Place 5 modaks
+                gameLoop();
+                allCorrect = true; // Reset for the new level
+            }
+
+            document.addEventListener('keydown', handleKeyDown);
+        });
+    </script>
+</body>
+</html>
+
